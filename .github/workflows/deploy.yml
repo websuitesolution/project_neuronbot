@@ -1,0 +1,48 @@
+name: cicd pipeline for neuronbot
+
+on:
+  push:
+    branches:
+      - main  # set a branch to deploy
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04  # should remain updated to latest ubuntu lts
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+
+    steps:
+      - uses: actions/checkout@v3.3.0
+        with:
+          fetch-depth: 1  # only fetch the latest commit to reduce runtime
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v1
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: Test connection to Tailscale node
+        run: |
+          ping -c 4 100.78.96.111  # connection testing to neuronbot
+
+      - name: Rsync deployment
+        uses: burnett01/rsync-deployments@6.0.0
+        with:
+          switches: -avzr --delete
+          path: code/
+          remote_path: /home/ros/Desktop/code # target directory
+          remote_host: 100.118.222.63
+          remote_port: 22
+          remote_user: ros
+          remote_key: ${{ secrets.DEPLOY_KEY }}
+
+#      - name: Execute commands on neuronbot
+#        uses: appleboy/ssh-action@v0.1.10
+#        with:
+#          host: 100.78.96.111
+#          username: ros
+#          port: 22
+#          key: ${{ secrets.DEPLOY_KEY }}
+#          script: commands_to_be_executed
