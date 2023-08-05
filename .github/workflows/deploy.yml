@@ -33,7 +33,7 @@ jobs:
           switches: -avzr --delete
           path: code/
           remote_path: /home/ros/Desktop/code # target directory
-          remote_host: 100.118.222.63
+          remote_host: 100.78.96.111
           remote_port: 22
           remote_user: ros
           remote_key: ${{ secrets.DEPLOY_KEY }}
